@@ -1,0 +1,12 @@
+{
+  "name": "gexa-webhook",
+  "version": "1.0.0",
+  "description": "Webhook WhatsApp + Meta + Supabase",
+  "main": "index.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1"
+  }
+}
