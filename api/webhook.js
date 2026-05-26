@@ -13,6 +13,7 @@ function readPayload(body) {
 function getFirstWhatsAppMessage(payload) {
   const value = payload.entry?.[0]?.changes?.[0]?.value;
   const message = value?.messages?.[0];
+  const contact = value?.contacts?.[0];
 
   if (!message) {
     return null;
@@ -20,6 +21,7 @@ function getFirstWhatsAppMessage(payload) {
 
   return {
     message,
+    contactName: contact?.profile?.name || null,
     phoneNumberId: value.metadata?.phone_number_id || null,
   };
 }
@@ -61,12 +63,13 @@ module.exports = async function webhook(req, res) {
       return res.status(200).json({ ok: true, guardado: false });
     }
 
-    const { message, phoneNumberId } = whatsapp;
+    const { message, contactName, phoneNumberId } = whatsapp;
 
     const { saveIncomingWhatsAppMessage } = require("../lib/gexa");
     const result = await saveIncomingWhatsAppMessage({
       payload,
       message,
+      contactName,
       phoneNumberId,
     });
 

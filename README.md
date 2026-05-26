@@ -8,7 +8,7 @@ Webhook simple para recibir mensajes de WhatsApp Cloud API en Vercel y guardarlo
 2. Vercel ejecuta `api/webhook.js`.
 3. El webhook lee el payload y busca el primer mensaje de WhatsApp.
 4. El webhook busca el canal en Supabase usando `whatsapp_phone_number_id`.
-5. El webhook crea o reutiliza contacto y conversacion.
+5. El webhook crea o reutiliza contacto y conversacion. Si Meta envia nombre de perfil, lo guarda en el contacto.
 6. El webhook inserta una fila en Supabase.
 7. El webhook responde `200` despues del guardado correcto.
 
