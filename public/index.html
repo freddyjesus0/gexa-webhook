@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gexa Inbox</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --line: #d8dee7;
+        --line-strong: #b8c2d0;
+        --text: #17202a;
+        --muted: #607084;
+        --accent: #0f766e;
+        --accent-dark: #115e59;
+        --incoming: #ffffff;
+        --outgoing: #dff3ee;
+        --danger: #b42318;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      button,
+      select {
+        font: inherit;
+      }
+
+      .app {
+        display: grid;
+        grid-template-rows: 56px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .brand {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .brand span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .toolbar select,
+      .toolbar button {
+        height: 34px;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        background: #fff;
+        color: var(--text);
+      }
+
+      .toolbar select {
+        min-width: 140px;
+        padding: 0 10px;
+      }
+
+      .toolbar button {
+        padding: 0 12px;
+        cursor: pointer;
+      }
+
+      .toolbar button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .sidebar {
+        min-height: 0;
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+        overflow: auto;
+      }
+
+      .sidebar-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .sidebar-header strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .sidebar-header span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .conversation-list {
+        display: grid;
+      }
+
+      .conversation-button {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        width: 100%;
+        padding: 14px 16px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .conversation-button:hover,
+      .conversation-button.active {
+        background: #eef4f6;
+      }
+
+      .conversation-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 650;
+      }
+
+      .conversation-preview {
+        grid-column: 1 / -1;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 13px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .conversation-meta {
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .main {
+        display: grid;
+        grid-template-rows: 64px minmax(0, 1fr);
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .conversation-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 22px;
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .conversation-title {
+        min-width: 0;
+      }
+
+      .conversation-title strong {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .conversation-title span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .status-pill {
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        padding: 4px 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .messages {
+        min-height: 0;
+        padding: 22px;
+        overflow: auto;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)),
+          repeating-linear-gradient(
+            45deg,
+            #eef2f6 0,
+            #eef2f6 1px,
+            transparent 1px,
+            transparent 18px
+          );
+      }
+
+      .message-row {
+        display: flex;
+        margin-bottom: 10px;
+      }
+
+      .message-row.outgoing {
+        justify-content: flex-end;
+      }
+
+      .message {
+        max-width: min(680px, 78%);
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--incoming);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      }
+
+      .message-row.outgoing .message {
+        background: var(--outgoing);
+        border-color: #b7ded4;
+      }
+
+      .message p {
+        margin: 0;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+      }
+
+      .message time {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: right;
+      }
+
+      .empty,
+      .error {
+        padding: 28px;
+        color: var(--muted);
+      }
+
+      .error {
+        color: var(--danger);
+      }
+
+      @media (max-width: 760px) {
+        .topbar {
+          align-items: stretch;
+          flex-direction: column;
+          height: auto;
+          padding: 12px;
+        }
+
+        .toolbar {
+          width: 100%;
+        }
+
+        .toolbar select,
+        .toolbar button {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+          grid-template-rows: 280px minmax(0, 1fr);
+        }
+
+        .sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .message {
+          max-width: 92%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <h1>Gexa Inbox</h1>
+          <span id="lastUpdated">Sin cargar</span>
+        </div>
+        <div class="toolbar">
+          <select id="empresaSelect" aria-label="Empresa">
+            <option value="personal">Personal</option>
+            <option value="gexa">Gexa</option>
+            <option value="neoplas">Neoplas</option>
+            <option value="prime">Prime</option>
+          </select>
+          <button id="refreshButton" class="primary" type="button">Actualizar</button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <strong>Conversaciones</strong>
+            <span id="conversationCount">0 conversaciones</span>
+          </div>
+          <div id="conversationList" class="conversation-list"></div>
+        </aside>
+
+        <main class="main">
+          <section class="conversation-header">
+            <div class="conversation-title">
+              <strong id="selectedName">Selecciona una conversación</strong>
+              <span id="selectedMeta">Los mensajes aparecerán aquí</span>
+            </div>
+            <span id="selectedStatus" class="status-pill">Sin selección</span>
+          </section>
+          <section id="messages" class="messages">
+            <div class="empty">No hay conversación seleccionada.</div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const state = {
+        conversaciones: [],
+        selectedId: null,
+      };
+
+      const empresaSelect = document.querySelector("#empresaSelect");
+      const refreshButton = document.querySelector("#refreshButton");
+      const conversationList = document.querySelector("#conversationList");
+      const conversationCount = document.querySelector("#conversationCount");
+      const messages = document.querySelector("#messages");
+      const selectedName = document.querySelector("#selectedName");
+      const selectedMeta = document.querySelector("#selectedMeta");
+      const selectedStatus = document.querySelector("#selectedStatus");
+      const lastUpdated = document.querySelector("#lastUpdated");
+      const tokenStorageKey = "gexa_dashboard_token";
+
+      function getDashboardToken() {
+        let token = window.localStorage.getItem(tokenStorageKey);
+
+        if (!token) {
+          token = window.prompt("Token de acceso");
+
+          if (token) {
+            window.localStorage.setItem(tokenStorageKey, token);
+          }
+        }
+
+        return token;
+      }
+
+      function formatDate(value) {
+        if (!value) return "";
+
+        return new Intl.DateTimeFormat("es-CO", {
+          dateStyle: "short",
+          timeStyle: "short",
+        }).format(new Date(value));
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function getContactLabel(conversation) {
+        const contact = conversation.contactos || {};
+        return contact.nombre || contact.telefono || contact.external_user_id || "Contacto sin nombre";
+      }
+
+      function getLastMessage(conversation) {
+        return conversation.mensajes[conversation.mensajes.length - 1];
+      }
+
+      function renderConversationList() {
+        conversationList.innerHTML = "";
+        conversationCount.textContent = `${state.conversaciones.length} conversaciones`;
+
+        if (!state.conversaciones.length) {
+          conversationList.innerHTML = '<div class="empty">No hay conversaciones para esta empresa.</div>';
+          return;
+        }
+
+        for (const conversation of state.conversaciones) {
+          const lastMessage = getLastMessage(conversation);
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "conversation-button";
+          if (conversation.id === state.selectedId) {
+            button.classList.add("active");
+          }
+
+          button.innerHTML = `
+            <div class="conversation-name">${escapeHtml(getContactLabel(conversation))}</div>
+            <div class="conversation-meta">${formatDate(conversation.ultimo_mensaje_at || conversation.created_at)}</div>
+            <div class="conversation-preview">${escapeHtml(lastMessage?.texto || "Sin texto")}</div>
+          `;
+
+          button.addEventListener("click", () => {
+            state.selectedId = conversation.id;
+            render();
+          });
+
+          conversationList.appendChild(button);
+        }
+      }
+
+      function renderMessages() {
+        const conversation = state.conversaciones.find((item) => item.id === state.selectedId);
+
+        if (!conversation) {
+          selectedName.textContent = "Selecciona una conversación";
+          selectedMeta.textContent = "Los mensajes aparecerán aquí";
+          selectedStatus.textContent = "Sin selección";
+          messages.innerHTML = '<div class="empty">No hay conversación seleccionada.</div>';
+          return;
+        }
+
+        selectedName.textContent = getContactLabel(conversation);
+        selectedMeta.textContent = `${conversation.canales?.nombre || "WhatsApp"} · ${conversation.contactos?.external_user_id || ""}`;
+        selectedStatus.textContent = conversation.estado;
+
+        if (!conversation.mensajes.length) {
+          messages.innerHTML = '<div class="empty">Esta conversación aún no tiene mensajes.</div>';
+          return;
+        }
+
+        messages.innerHTML = "";
+
+        for (const item of conversation.mensajes) {
+          const row = document.createElement("div");
+          row.className = `message-row ${item.direccion === "saliente" ? "outgoing" : "incoming"}`;
+          row.innerHTML = `
+            <div class="message">
+              <p>${escapeHtml(item.texto || `[${item.tipo_mensaje || "mensaje"}]`)}</p>
+              <time>${formatDate(item.created_at)}</time>
+            </div>
+          `;
+          messages.appendChild(row);
+        }
+
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function render() {
+        renderConversationList();
+        renderMessages();
+      }
+
+      async function loadConversations() {
+        refreshButton.disabled = true;
+        refreshButton.textContent = "Cargando";
+
+        try {
+          const empresaId = empresaSelect.value;
+          const token = getDashboardToken();
+
+          if (!token) {
+            throw new Error("Falta token de acceso.");
+          }
+
+          const response = await fetch(`/api/conversaciones?empresa_id=${encodeURIComponent(empresaId)}`, {
+            headers: {
+              "x-gexa-dashboard-token": token,
+            },
+          });
+          const data = await response.json();
+
+          if (!response.ok || !data.ok) {
+            if (response.status === 401) {
+              window.localStorage.removeItem(tokenStorageKey);
+            }
+
+            throw new Error(data.error || "No se pudo cargar el inbox.");
+          }
+
+          state.conversaciones = data.conversaciones;
+
+          if (!state.conversaciones.some((item) => item.id === state.selectedId)) {
+            state.selectedId = state.conversaciones[0]?.id || null;
+          }
+
+          lastUpdated.textContent = `Actualizado ${formatDate(new Date().toISOString())}`;
+          render();
+        } catch (error) {
+          messages.innerHTML = `<div class="error">${error.message}</div>`;
+        } finally {
+          refreshButton.disabled = false;
+          refreshButton.textContent = "Actualizar";
+        }
+      }
+
+      refreshButton.addEventListener("click", loadConversations);
+      empresaSelect.addEventListener("change", () => {
+        state.selectedId = null;
+        loadConversations();
+      });
+
+      loadConversations();
+    </script>
+  </body>
+</html>

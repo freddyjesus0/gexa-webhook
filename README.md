@@ -17,8 +17,10 @@ La misma ruta tambien responde el `GET` que Meta usa para verificar el webhook.
 ## Archivos
 
 - `api/webhook.js`: verifica Meta y recibe mensajes.
+- `api/conversaciones.js`: entrega conversaciones y mensajes al dashboard.
 - `lib/supabase.js`: crea el cliente servidor de Supabase.
 - `lib/gexa.js`: guarda mensajes entrantes dentro del modelo de Gexa.
+- `public/index.html`: dashboard minimo para leer conversaciones.
 - `vercel.json`: se mantiene como JSON valido. No necesita reglas extra porque Vercel publica `api/webhook.js` como `/api/webhook`.
 
 ## Variables de entorno
@@ -31,6 +33,7 @@ SUPABASE_SECRET_KEY=
 WHATSAPP_VERIFY_TOKEN=
 WHATSAPP_DEFAULT_EMPRESA_ID=
 WHATSAPP_ACCESS_TOKEN=
+DASHBOARD_ACCESS_TOKEN=
 ```
 
 `WHATSAPP_VERIFY_TOKEN` es un texto inventado por ti. Meta lo compara con tu webhook durante la verificacion.
@@ -38,6 +41,8 @@ WHATSAPP_ACCESS_TOKEN=
 `SUPABASE_SECRET_KEY` debe usarse solo en el servidor. No la pongas en frontend ni la subas a Git.
 
 `WHATSAPP_ACCESS_TOKEN` todavia no se usa para recibir mensajes. Se necesitara mas adelante para enviar respuestas por la API de Meta.
+
+`DASHBOARD_ACCESS_TOKEN` es un texto inventado por ti para proteger el dashboard mientras no existe login.
 
 ## Modelo actual en Supabase
 
@@ -97,6 +102,22 @@ https://TU-PROYECTO.vercel.app/api/webhook
 No uses `/webhook`.
 
 En Verify Token escribe exactamente el mismo valor que guardaste en `WHATSAPP_VERIFY_TOKEN`.
+
+## Dashboard
+
+Cuando el proyecto este desplegado en Vercel, abre:
+
+```text
+https://TU-PROYECTO.vercel.app/
+```
+
+El dashboard lee conversaciones desde:
+
+```text
+/api/conversaciones
+```
+
+Al abrirlo, el navegador pedira el valor de `DASHBOARD_ACCESS_TOKEN`.
 
 ## Logs esperados
 
