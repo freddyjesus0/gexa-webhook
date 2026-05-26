@@ -61,35 +61,17 @@ module.exports = async function webhook(req, res) {
       return res.status(200).json({ ok: true, guardado: false });
     }
 
-    if (!process.env.WHATSAPP_DEFAULT_EMPRESA_ID) {
-      throw new Error("Falta WHATSAPP_DEFAULT_EMPRESA_ID.");
-    }
-
     const { message, phoneNumberId } = whatsapp;
 
-    const filaMensaje = {
-      empresa_id: process.env.WHATSAPP_DEFAULT_EMPRESA_ID,
-      canal: "whatsapp",
-      remitente: message.from || null,
-      texto: message.text?.body || null,
-      tipo_mensaje: message.type || null,
-      whatsapp_message_id: message.id || null,
-      whatsapp_phone_number_id: phoneNumberId,
+    const { saveIncomingWhatsAppMessage } = require("../lib/gexa");
+    const result = await saveIncomingWhatsAppMessage({
       payload,
-    };
-
-    console.log("Insertando Supabase");
-
-    const { supabase } = require("../lib/supabase");
-    const { error } = await supabase.from("mensajes").insert(filaMensaje);
-
-    if (error) {
-      console.log("Error:", error);
-      return res.status(500).json({ ok: false, error: error.message });
-    }
+      message,
+      phoneNumberId,
+    });
 
     console.log("Guardado OK");
-    return res.status(200).json({ ok: true, guardado: true });
+    return res.status(200).json({ ok: true, ...result });
   } catch (error) {
     console.log("Error:", error);
     return res.status(500).json({ ok: false, error: error.message });
