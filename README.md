@@ -119,6 +119,35 @@ El dashboard lee conversaciones desde:
 
 Al abrirlo, el navegador pedira el valor de `DASHBOARD_ACCESS_TOKEN`.
 
+## Coexistence
+
+Para lanzar Embedded Signup en modo WhatsApp Business App onboarding:
+
+```text
+https://TU-PROYECTO.vercel.app/coexistence
+```
+
+Configuracion usada:
+
+```text
+App ID: 2187806315317185
+Configuration ID: 993121409784065
+featureType: whatsapp_business_app_onboarding
+```
+
+En Meta configura:
+
+```text
+Allowed Domains for JavaScript SDK:
+gexa-webhook.vercel.app
+
+Valid OAuth Redirect URIs:
+https://gexa-webhook.vercel.app/coexistence
+https://gexa-webhook.vercel.app/coexistence.html
+```
+
+No uses `Migrate number`, `Disconnect account` ni `Remove phone number` si quieres mantener WhatsApp Business App activo en el celular.
+
 ## Logs esperados
 
 Cuando llegue un mensaje, en los logs de Vercel deberias ver:

@@ -1,1 +1,8 @@
-{}
+{
+  "rewrites": [
+    {
+      "source": "/coexistence",
+      "destination": "/coexistence.html"
+    }
+  ]
+}
