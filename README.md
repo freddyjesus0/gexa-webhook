@@ -18,9 +18,14 @@ La misma ruta tambien responde el `GET` que Meta usa para verificar el webhook.
 
 - `api/webhook.js`: verifica Meta y recibe mensajes.
 - `api/conversaciones.js`: entrega conversaciones y mensajes al dashboard.
+- `api/responder.js`: envia respuestas manuales por WhatsApp Cloud API.
+- `api/data-deletion.js`: endpoint basico para solicitudes de eliminacion de datos de Meta.
 - `lib/supabase.js`: crea el cliente servidor de Supabase.
 - `lib/gexa.js`: guarda mensajes entrantes dentro del modelo de Gexa.
 - `public/index.html`: dashboard minimo para leer conversaciones.
+- `public/privacy.html`: politica de privacidad publica.
+- `public/terms.html`: terminos de servicio publicos.
+- `public/data-deletion.html`: instrucciones publicas de eliminacion de datos.
 - `vercel.json`: se mantiene como JSON valido. No necesita reglas extra porque Vercel publica `api/webhook.js` como `/api/webhook`.
 
 ## Variables de entorno
@@ -40,7 +45,7 @@ DASHBOARD_ACCESS_TOKEN=
 
 `SUPABASE_SECRET_KEY` debe usarse solo en el servidor. No la pongas en frontend ni la subas a Git.
 
-`WHATSAPP_ACCESS_TOKEN` todavia no se usa para recibir mensajes. Se necesitara mas adelante para enviar respuestas por la API de Meta.
+`WHATSAPP_ACCESS_TOKEN` se usa para enviar respuestas desde el dashboard por la API de Meta.
 
 `DASHBOARD_ACCESS_TOKEN` es un texto inventado por ti para proteger el dashboard mientras no existe login.
 
@@ -118,6 +123,32 @@ El dashboard lee conversaciones desde:
 ```
 
 Al abrirlo, el navegador pedira el valor de `DASHBOARD_ACCESS_TOKEN`.
+
+El dashboard tambien puede enviar respuestas manuales por:
+
+```text
+/api/responder
+```
+
+Para que funcione, `WHATSAPP_ACCESS_TOKEN` debe ser un token valido con permiso para enviar mensajes desde el `phone_number_id` del canal seleccionado.
+
+## URLs para App Settings de Meta
+
+Usa estas URLs publicas en la configuracion de la app:
+
+```text
+Privacy Policy URL:
+https://TU-PROYECTO.vercel.app/privacy
+
+Terms of Service URL:
+https://TU-PROYECTO.vercel.app/terms
+
+User Data Deletion URL:
+https://TU-PROYECTO.vercel.app/data-deletion
+
+Data Deletion Callback:
+https://TU-PROYECTO.vercel.app/api/data-deletion
+```
 
 ## Coexistence
 

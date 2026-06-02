@@ -184,7 +184,7 @@
 
       .main {
         display: grid;
-        grid-template-rows: 64px minmax(0, 1fr);
+        grid-template-rows: 64px minmax(0, 1fr) auto;
         min-width: 0;
         min-height: 0;
       }
@@ -285,6 +285,42 @@
         color: var(--danger);
       }
 
+      .composer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        padding: 14px 18px;
+        border-top: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .composer textarea {
+        min-height: 44px;
+        max-height: 120px;
+        resize: vertical;
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        padding: 10px 12px;
+        color: var(--text);
+        font: inherit;
+        line-height: 1.35;
+      }
+
+      .composer button {
+        min-width: 96px;
+        height: 44px;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+      }
+
+      .composer button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
       @media (max-width: 760px) {
         .topbar {
           align-items: stretch;
@@ -349,14 +385,18 @@
         <main class="main">
           <section class="conversation-header">
             <div class="conversation-title">
-              <strong id="selectedName">Selecciona una conversación</strong>
-              <span id="selectedMeta">Los mensajes aparecerán aquí</span>
+              <strong id="selectedName">Selecciona una conversacion</strong>
+              <span id="selectedMeta">Los mensajes apareceran aqui</span>
             </div>
-            <span id="selectedStatus" class="status-pill">Sin selección</span>
+            <span id="selectedStatus" class="status-pill">Sin seleccion</span>
           </section>
           <section id="messages" class="messages">
-            <div class="empty">No hay conversación seleccionada.</div>
+            <div class="empty">No hay conversacion seleccionada.</div>
           </section>
+          <form id="replyForm" class="composer">
+            <textarea id="replyText" placeholder="Escribe una respuesta" aria-label="Respuesta"></textarea>
+            <button id="sendButton" type="submit">Enviar</button>
+          </form>
         </main>
       </div>
     </div>
@@ -376,6 +416,9 @@
       const selectedMeta = document.querySelector("#selectedMeta");
       const selectedStatus = document.querySelector("#selectedStatus");
       const lastUpdated = document.querySelector("#lastUpdated");
+      const replyForm = document.querySelector("#replyForm");
+      const replyText = document.querySelector("#replyText");
+      const sendButton = document.querySelector("#sendButton");
       const tokenStorageKey = "gexa_dashboard_token";
 
       function getDashboardToken() {
@@ -456,19 +499,23 @@
         const conversation = state.conversaciones.find((item) => item.id === state.selectedId);
 
         if (!conversation) {
-          selectedName.textContent = "Selecciona una conversación";
-          selectedMeta.textContent = "Los mensajes aparecerán aquí";
-          selectedStatus.textContent = "Sin selección";
-          messages.innerHTML = '<div class="empty">No hay conversación seleccionada.</div>';
+          selectedName.textContent = "Selecciona una conversacion";
+          selectedMeta.textContent = "Los mensajes apareceran aqui";
+          selectedStatus.textContent = "Sin seleccion";
+          sendButton.disabled = true;
+          replyText.disabled = true;
+          messages.innerHTML = '<div class="empty">No hay conversacion seleccionada.</div>';
           return;
         }
 
         selectedName.textContent = getContactLabel(conversation);
-        selectedMeta.textContent = `${conversation.canales?.nombre || "WhatsApp"} · ${conversation.contactos?.external_user_id || ""}`;
+        selectedMeta.textContent = `${conversation.canales?.nombre || "WhatsApp"} - ${conversation.contactos?.external_user_id || ""}`;
         selectedStatus.textContent = conversation.estado;
+        sendButton.disabled = false;
+        replyText.disabled = false;
 
         if (!conversation.mensajes.length) {
-          messages.innerHTML = '<div class="empty">Esta conversación aún no tiene mensajes.</div>';
+          messages.innerHTML = '<div class="empty">Esta conversacion aun no tiene mensajes.</div>';
           return;
         }
 
@@ -537,13 +584,62 @@
         }
       }
 
+      async function sendReply(event) {
+        event.preventDefault();
+
+        const text = replyText.value.trim();
+
+        if (!state.selectedId || !text) {
+          return;
+        }
+
+        sendButton.disabled = true;
+        sendButton.textContent = "Enviando";
+
+        try {
+          const token = getDashboardToken();
+
+          if (!token) {
+            throw new Error("Falta token de acceso.");
+          }
+
+          const response = await fetch("/api/responder", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-gexa-dashboard-token": token,
+            },
+            body: JSON.stringify({
+              conversacion_id: state.selectedId,
+              texto: text,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.ok) {
+            throw new Error(data.error || "No se pudo enviar la respuesta.");
+          }
+
+          replyText.value = "";
+          await loadConversations();
+        } catch (error) {
+          messages.insertAdjacentHTML("beforeend", `<div class="error">${escapeHtml(error.message)}</div>`);
+        } finally {
+          sendButton.disabled = false;
+          sendButton.textContent = "Enviar";
+        }
+      }
+
       refreshButton.addEventListener("click", loadConversations);
       empresaSelect.addEventListener("change", () => {
         state.selectedId = null;
         loadConversations();
       });
+      replyForm.addEventListener("submit", sendReply);
 
       loadConversations();
     </script>
   </body>
 </html>
+
